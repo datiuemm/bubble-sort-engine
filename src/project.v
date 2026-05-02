@@ -36,7 +36,7 @@ module tt_um_bubble_sort (
     assign uio_out[7]   = 1'b0;
 
     assign uo_out = core_out_data;
----
+
     bubble_sort #(
         .DATA_WIDTH(8),
         .MAX_SIZE(8)
