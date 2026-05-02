@@ -80,7 +80,7 @@ module bubble_sort #(
                         end
                         
                         
-                        if (j_reg >= (count - 2 - i_reg)) begin
+                        if (j_reg >= (count - (2 + i_reg))) begin
                             j_reg <= 0;
                             if (i_reg >= (count - 2)) begin
                                 out_ptr <= 0;
