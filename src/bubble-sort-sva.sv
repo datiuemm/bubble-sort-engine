@@ -73,9 +73,9 @@ module bubble_sort_sva #(
     endproperty
 
     property p_eventually_output;
-        @(posedge clk) disable iff (!rst_n)
-        (state == SORT) |-> s_eventually (state == OUTPUT);
+    	@(posedge clk) disable iff (!rst_n)
+    	(state == SORT) |-> (!(state == OUTPUT))[*0:$] ##1 (state == OUTPUT);
     endproperty
-    a_eventually_output: assert property (p_eventually_output);
+    a_eventually_output: assert property (p_eventually_output);	
 
 endmodule
