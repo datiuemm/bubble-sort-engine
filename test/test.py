@@ -39,17 +39,21 @@ async def collect_data(dut, count):
     actual = []
     timeout = 0
 
+    dut.uio_in.value = 0
+
     while len(actual) < count and timeout < 1000:
         ready = random.choice([0, 1, 1])
         dut.uio_in.value = (ready << 3)
+
         await RisingEdge(dut.clk)
 
         uio_val = int(dut.uio_out.value)
+        data = int(dut.uo_out.value)
 
-        if ready and (uio_val & 0x20):
-            actual.append(int(dut.uo_out.value))
-            if uio_val & 0x40:
-                break
+        valid = (uio_val & 0x20) != 0
+
+        if valid and ready:
+            actual.append(data)
 
         timeout += 1
 
