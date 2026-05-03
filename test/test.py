@@ -1,6 +1,6 @@
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, ClockCycles
+from cocotb.triggers import RisingEdge, ClockCycles, ReadOnly
 import random
 
 
@@ -46,13 +46,15 @@ async def collect_data(dut, count):
         cur |= (1 << 3)
         dut.uio_in.value = cur
 
-        await RisingEdge(dut.clk)
+        await ReadOnly()
 
         uio = int(dut.uio_out.value)
         valid = (uio & 0x20) != 0
 
         if valid:
             result.append(int(dut.uo_out.value))
+
+        await RisingEdge(dut.clk)
 
         timeout += 1
 

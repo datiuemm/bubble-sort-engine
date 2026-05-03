@@ -4,14 +4,11 @@ module bubble_sort #(
 )(
     input  wire                  clk,
     input  wire                  rst_n,
-    
     input  wire                  start,
-    
     input  wire                  in_valid,
     input  wire [DATA_WIDTH-1:0] in_data,
     input  wire                  in_last,
     output reg                   in_ready,
-    
     output reg                   out_valid,
     output reg  [DATA_WIDTH-1:0] out_data,
     output reg                   out_last,
@@ -24,13 +21,10 @@ module bubble_sort #(
                OUTPUT = 2'd3;
 
     reg [1:0] state;
-
     reg [DATA_WIDTH-1:0] mem [0:MAX_SIZE-1];
     reg [$clog2(MAX_SIZE):0] count;
     reg [$clog2(MAX_SIZE):0] i_reg, j_reg;
     reg [$clog2(MAX_SIZE):0] out_ptr;
-
-    reg [DATA_WIDTH-1:0] tmp;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -38,19 +32,19 @@ module bubble_sort #(
             in_ready  <= 0;
             out_valid <= 0;
             out_last  <= 0;
+            out_data  <= 0;
             count     <= 0;
             i_reg     <= 0;
             j_reg     <= 0;
             out_ptr   <= 0;
         end else begin
             case (state)
-
                 IDLE: begin
                     out_valid <= 0;
                     out_last  <= 0;
-                    count     <= 0;
                     if (start) begin
                         in_ready <= 1;
+                        count    <= 0;
                         state    <= INPUT;
                     end
                 end
@@ -70,50 +64,45 @@ module bubble_sort #(
 
                 SORT: begin
                     if (count < 2) begin
-                        out_ptr <= 0;
                         state   <= OUTPUT;
-                    end else begin
-                        if (j_reg < (count - 1 - i_reg)) begin
+                        out_ptr <= 0;
+                    end else if (i_reg < count - 1) begin
+                        if (j_reg < count - 1 - i_reg) begin
                             if (mem[j_reg] > mem[j_reg+1]) begin
-                                tmp          = mem[j_reg];
                                 mem[j_reg]   <= mem[j_reg+1];
-                                mem[j_reg+1] <= tmp;
+                                mem[j_reg+1] <= mem[j_reg];
                             end
                             j_reg <= j_reg + 1;
                         end else begin
                             j_reg <= 0;
-                            if (i_reg >= (count - 2)) begin
-                                out_ptr <= 0;
-                                state   <= OUTPUT;
-                            end else begin
-                                i_reg <= i_reg + 1;
-                            end
+                            i_reg <= i_reg + 1;
                         end
+                    end else begin
+                        state   <= OUTPUT;
+                        out_ptr <= 0;
                     end
                 end
 
-OUTPUT: begin
-    if (!out_valid) begin
-        out_valid <= 1;
-        out_ptr   <= 0;
-    end
-
-    out_data <= mem[out_ptr];
-    out_last <= (out_ptr == count - 1);
-
-    if (out_valid && out_ready) begin
-        if (out_ptr == count - 1) begin
-            out_valid <= 0;
-            out_last  <= 0;
-            state     <= IDLE;
-        end else begin
-            out_ptr <= out_ptr + 1;
-        end
-    end
-end
-
+                OUTPUT: begin
+                    if (!out_valid) begin
+                        out_valid <= 1;
+                        out_data  <= mem[out_ptr];
+                        out_last  <= (out_ptr == count - 1);
+                    end else if (out_ready) begin
+                        if (out_ptr == count - 1) begin
+                            out_valid <= 0;
+                            out_last  <= 0;
+                            state     <= IDLE;
+                        end else begin
+                            out_ptr   <= out_ptr + 1;
+                            out_data  <= mem[out_ptr + 1];
+                            out_last  <= (out_ptr + 1 == count - 1);
+                        end
+                    end
+                end
+                
+                default: state <= IDLE;
             endcase
         end
     end
-
 endmodule
