@@ -92,21 +92,25 @@ module bubble_sort #(
                     end
                 end
 
-                OUTPUT: begin
-                    out_valid <= 1;
-                    out_data  <= mem[out_ptr];
-                    out_last  <= (out_ptr == count - 1);
+OUTPUT: begin
+    if (!out_valid) begin
+        out_valid <= 1;
+        out_ptr   <= 0;
+    end
 
-                    if (out_valid && out_ready) begin
-                        if (out_ptr == count - 1) begin
-                            out_valid <= 0;
-                            out_last  <= 0;
-                            state     <= IDLE;
-                        end else begin
-                            out_ptr <= out_ptr + 1;
-                        end
-                    end
-                end
+    out_data <= mem[out_ptr];
+    out_last <= (out_ptr == count - 1);
+
+    if (out_valid && out_ready) begin
+        if (out_ptr == count - 1) begin
+            out_valid <= 0;
+            out_last  <= 0;
+            state     <= IDLE;
+        end else begin
+            out_ptr <= out_ptr + 1;
+        end
+    end
+end
 
             endcase
         end
