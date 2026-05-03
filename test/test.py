@@ -41,7 +41,10 @@ async def collect_data(dut, count):
     timeout = 0
 
     while len(result) < count and timeout < 1000:
-        dut.uio_in.value |= (1 << 3)
+
+        cur = int(dut.uio_in.value)
+        cur |= (1 << 3)
+        dut.uio_in.value = cur
 
         await RisingEdge(dut.clk)
 
