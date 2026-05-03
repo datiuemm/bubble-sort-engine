@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: © 2024 Tiny Tapeout
-# SPDX-License-Identifier: Apache-2.0
-
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, RisingEdge, ReadOnly
@@ -20,7 +17,7 @@ async def send_data(dut, data):
     await RisingEdge(dut.clk)
     dut.uio_in.value = 0
     
-    while not (dut.uio_out.value & 0x10):
+    while not (int(dut.uio_out.value) & 0x10):
         await RisingEdge(dut.clk)
 
     for i, val in enumerate(data):
@@ -43,9 +40,10 @@ async def collect_data(dut, count):
         await RisingEdge(dut.clk)
         await ReadOnly()
         
-        if ready and (dut.uio_out.value & 0x20):
+        uio_out_val = int(dut.uio_out.value)
+        if ready and (uio_out_val & 0x20):
             actual.append(int(dut.uo_out.value))
-            if dut.uio_out.value & 0x40:
+            if uio_out_val & 0x40:
                 break
         timeout += 1
     return actual
@@ -67,7 +65,7 @@ async def test_bubble_sort_comprehensive(dut):
         await reset_dut(dut)
         await send_data(dut, case)
         
-        while not (dut.uio_out.value & 0x20):
+        while not (int(dut.uio_out.value) & 0x20):
             await RisingEdge(dut.clk)
             
         result = await collect_data(dut, len(case))
@@ -80,7 +78,7 @@ async def test_bubble_sort_comprehensive(dut):
         await reset_dut(dut)
         await send_data(dut, rand_case)
         
-        while not (dut.uio_out.value & 0x20):
+        while not (int(dut.uio_out.value) & 0x20):
             await RisingEdge(dut.clk)
             
         result = await collect_data(dut, size)
