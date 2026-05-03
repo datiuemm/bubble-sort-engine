@@ -39,11 +39,14 @@ async def collect_data(dut, count):
     actual = []
     timeout = 0
 
-    dut.uio_in.value = 0
+    prev_handshake = 0
 
     while len(actual) < count and timeout < 1000:
         ready = random.choice([0, 1, 1])
-        dut.uio_in.value = (ready << 3)
+
+        cur = int(dut.uio_in.value)
+        cur = (cur & ~(1 << 3)) | (ready << 3)
+        dut.uio_in.value = cur
 
         await RisingEdge(dut.clk)
 
@@ -51,14 +54,15 @@ async def collect_data(dut, count):
         data = int(dut.uo_out.value)
 
         valid = (uio_val & 0x20) != 0
+        handshake = valid and ready
 
-        if valid and ready:
+        if handshake and not prev_handshake:
             actual.append(data)
 
+        prev_handshake = handshake
         timeout += 1
 
     return actual
-
 
 @cocotb.test()
 async def test_bubble_sort_comprehensive(dut):
