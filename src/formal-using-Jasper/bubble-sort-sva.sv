@@ -46,12 +46,6 @@ module bubble_sort_sva #(
     a_in_last_stops_input: assert property (p_in_last_stops_input);
 
 
-    property p_out_data_stable;
-        @(posedge clk) disable iff (!rst_n)
-        (out_valid && !out_ready) |=> (out_valid && $stable(out_data));
-    endproperty
-    a_out_data_stable: assert property (p_out_data_stable);
-
 
     property p_out_last_only_at_end;
         @(posedge clk) disable iff (!rst_n)

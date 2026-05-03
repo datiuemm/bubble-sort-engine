@@ -3,38 +3,85 @@
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
+from cocotb.triggers import ClockCycles, RisingEdge, ReadOnly
+import random
 
-
-@cocotb.test()
-async def test_project(dut):
-    dut._log.info("Start")
-
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, unit="us")
-    cocotb.start_soon(clock.start())
-
-    # Reset
-    dut._log.info("Reset")
+async def reset_dut(dut):
+    dut.rst_n.value = 0
     dut.ena.value = 1
     dut.ui_in.value = 0
     dut.uio_in.value = 0
-    dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
+    await ClockCycles(dut.clk, 5)
     dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 2)
 
-    dut._log.info("Test project behavior")
+async def send_data(dut, data):
+    dut.uio_in.value = 1
+    await RisingEdge(dut.clk)
+    dut.uio_in.value = 0
+    
+    while not (dut.uio_out.value & 0x10):
+        await RisingEdge(dut.clk)
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
+    for i, val in enumerate(data):
+        dut.ui_in.value = val
+        ctrl = (1 << 1)
+        if i == len(data) - 1:
+            ctrl |= (1 << 2)
+        dut.uio_in.value = ctrl
+        await RisingEdge(dut.clk)
+    
+    dut.uio_in.value = 0
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+async def collect_data(dut, count):
+    actual = []
+    timeout = 0
+    while len(actual) < count and timeout < 500:
+        ready = random.choice([0, 1, 1]) 
+        dut.uio_in.value = (ready << 3)
+        
+        await RisingEdge(dut.clk)
+        await ReadOnly()
+        
+        if ready and (dut.uio_out.value & 0x20):
+            actual.append(int(dut.uo_out.value))
+            if dut.uio_out.value & 0x40:
+                break
+        timeout += 1
+    return actual
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+@cocotb.test()
+async def test_bubble_sort_comprehensive(dut):
+    clock = Clock(dut.clk, 10, unit="ns")
+    cocotb.start_soon(clock.start())
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    test_cases = [
+        [8, 7, 6, 5, 4, 3, 2, 1],
+        [1, 2, 3, 4, 5, 6, 7, 8],
+        [5, 5, 2, 8, 2, 1, 9, 0],
+        [42],
+        [10, 20, 15]
+    ]
+
+    for case in test_cases:
+        await reset_dut(dut)
+        await send_data(dut, case)
+        
+        while not (dut.uio_out.value & 0x20):
+            await RisingEdge(dut.clk)
+            
+        result = await collect_data(dut, len(case))
+        expected = sorted(case)
+        assert result == expected
+
+    for _ in range(3):
+        size = random.randint(2, 8)
+        rand_case = [random.randint(0, 255) for _ in range(size)]
+        await reset_dut(dut)
+        await send_data(dut, rand_case)
+        
+        while not (dut.uio_out.value & 0x20):
+            await RisingEdge(dut.clk)
+            
+        result = await collect_data(dut, size)
+        assert result == sorted(rand_case)
