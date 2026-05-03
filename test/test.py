@@ -37,7 +37,6 @@ async def collect_data(dut, count):
     actual = []
     timeout = 0
     while len(actual) < count and timeout < 1000:
-        # Gán ready TRƯỚC khi đợi RisingEdge để tránh lỗi ReadOnly phase
         ready = random.choice([0, 1, 1]) 
         dut.uio_in.value = (ready << 3)
         
@@ -69,7 +68,6 @@ async def test_bubble_sort_comprehensive(dut):
         await reset_dut(dut)
         await send_data(dut, case)
         
-        # Đợi SORT xong
         while True:
             await ReadOnly()
             if int(dut.uio_out.value) & 0x20:
