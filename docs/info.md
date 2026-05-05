@@ -53,6 +53,19 @@ The testbench automatically loads various array test suites and manipulates the 
 The system mathematics and edge cases are formally verified using the Cadence/Siemens **Jasper** Formal Verification tool. 
 Since testbench coverage cannot guarantee 100% bug elimination, Formal Verification ensures absolute handshaking logic in the State Machine, boundaries on memories and counters (`count`, `out_ptr`), and mathematically proves the design avoids deadlocks and invalid states via SVA (SystemVerilog Assertions).
 
+## Bubble Sort Time Complexity
+
+### Bubble sort has the following time complexities:
+
+- **Worst-case time complexity:**  
+  $O(n^2)$
+
+- **Average-case time complexity:**  
+  $O(n^2)$
+
+- **Best-case time complexity (with swap flag optimization):**  
+  $O(n)$
+
 ## External hardware
 
 All built-in, we are all in-house, no need to outsource, because we are strong enough
