@@ -15,19 +15,20 @@ module bubble_sort #(
     input  wire                  out_ready
 );
 
-    localparam IDLE   = 2'd0,
-               INPUT  = 2'd1,
-               SORT   = 2'd2,
-               OUTPUT = 2'd3;
+    localparam IDLE   = 3'd0,
+               INPUT  = 3'd1,
+               COMPARE = 3'd2,
+               SWAP    = 3'd3,
+               NEXT    = 3'd4,
+               OUTPUT  = 3'd5;
 
-    reg [1:0] state;
+    reg [2:0] state;
     reg [DATA_WIDTH-1:0] mem [0:MAX_SIZE-1];
     reg [$clog2(MAX_SIZE):0] count;
     reg [$clog2(MAX_SIZE):0] i_reg, j_reg;
     reg [$clog2(MAX_SIZE):0] out_ptr;
-
-    wire [DATA_WIDTH-1:0] val_j     = mem[j_reg];
-    wire [DATA_WIDTH-1:0] val_j_next = mem[j_reg+1];
+    
+    reg [DATA_WIDTH-1:0] val_a, val_b;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -60,25 +61,21 @@ module bubble_sort #(
                             in_ready <= 0;
                             i_reg    <= 0;
                             j_reg    <= 0;
-                            state    <= SORT;
+                            state    <= (count == 0) ? OUTPUT : COMPARE;
                         end
                     end
                 end
 
-                SORT: begin
-                    if (count < 2) begin
-                        state   <= OUTPUT;
-                        out_ptr <= 0;
-                    end else if (i_reg < count - 1) begin
+                COMPARE: begin
+                    if (i_reg < count - 1) begin
                         if (j_reg < count - 1 - i_reg) begin
-                            if (val_j > val_j_next) begin
-                                mem[j_reg]   <= val_j_next;
-                                mem[j_reg+1] <= val_j;
-                            end
-                            j_reg <= j_reg + 1;
+                            val_a <= mem[j_reg];
+                            val_b <= mem[j_reg+1];
+                            state <= SWAP;
                         end else begin
                             j_reg <= 0;
                             i_reg <= i_reg + 1;
+                            state <= COMPARE;
                         end
                     end else begin
                         state   <= OUTPUT;
@@ -86,11 +83,19 @@ module bubble_sort #(
                     end
                 end
 
+                SWAP: begin
+                    if (val_a > val_b) begin
+                        mem[j_reg]   <= val_b;
+                        mem[j_reg+1] <= val_a;
+                    end
+                    j_reg <= j_reg + 1;
+                    state <= COMPARE;
+                end
+
                 OUTPUT: begin
                     if (!out_valid) begin
-                        if (count == 0) begin
-                            state <= IDLE;
-                        end else begin
+                        if (count == 0) state <= IDLE;
+                        else begin
                             out_valid <= 1;
                             out_data  <= mem[out_ptr];
                             out_last  <= (out_ptr == count - 1);
