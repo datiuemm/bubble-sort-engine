@@ -28,7 +28,7 @@ module bubble_sort #(
     reg [$clog2(MAX_SIZE):0] i_reg, j_reg;
     reg [$clog2(MAX_SIZE):0] out_ptr;
 
-    reg [DATA_WIDTH-1:0] tmp;   // <<< FIX GLS: swap buffer
+    reg [DATA_WIDTH-1:0] tmp;   
 
     integer k;
 
@@ -50,7 +50,6 @@ module bubble_sort #(
         end else begin
             case (state)
 
-            // ================= IDLE =================
             IDLE: begin
                 out_valid <= 0;
                 out_last  <= 0;
@@ -62,7 +61,6 @@ module bubble_sort #(
                 end
             end
 
-            // ================= INPUT =================
             INPUT: begin
                 if (in_valid && in_ready) begin
                     mem[count] <= in_data;
@@ -77,7 +75,6 @@ module bubble_sort #(
                 end
             end
 
-            // ================= SORT =================
             SORT: begin
 
                 if (count < 2) begin
@@ -89,7 +86,6 @@ module bubble_sort #(
 
                     if (j_reg < count - 1 - i_reg) begin
 
-                        // ===== GLS-SAFE SWAP =====
                         if (mem[j_reg] > mem[j_reg + 1]) begin
                             tmp               = mem[j_reg];
                             mem[j_reg]        <= mem[j_reg + 1];
@@ -109,7 +105,6 @@ module bubble_sort #(
                 end
             end
 
-            // ================= OUTPUT =================
             OUTPUT: begin
 
                 if (!out_valid) begin
