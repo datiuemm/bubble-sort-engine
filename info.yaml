@@ -39,7 +39,7 @@ pinout:
   uo[2]: "out_data[2]"
   uo[3]: "out_data[3]"
   uo[4]: "out_data[4]"
-  uo[5]: "out_data[5]"Đạt
+  uo[5]: "out_data[5]"
   uo[6]: "out_data[6]"
   uo[7]: "out_data[7]"
 
