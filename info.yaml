@@ -1,9 +1,9 @@
 # Tiny Tapeout project information
 project:
-  title:        "Bubble Sort Engine"      # Project title
+  title:        "IEEE Bubble Sort Engine"      # Project title
   author:       "Dat Dinh Trong"      # Your name
   discord:      "datiuemm"      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  "A bubble sort"      # One line description of what your project does
+  description:  "A bubble sort from DSA with love <3"      # One line description of what your project does
   language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
 
@@ -39,7 +39,7 @@ pinout:
   uo[2]: "out_data[2]"
   uo[3]: "out_data[3]"
   uo[4]: "out_data[4]"
-  uo[5]: "out_data[5]"
+  uo[5]: "out_data[5]"Đạt
   uo[6]: "out_data[6]"
   uo[7]: "out_data[7]"
 
